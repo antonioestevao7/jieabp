@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown, LogIn, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 import logo from "@/assets/logo.png";
 
 const navItems = [
@@ -19,6 +20,7 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { user, profile, signOut } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -82,13 +84,40 @@ export function Header() {
             ))}
           </div>
 
-          {/* CTA Button */}
-          <div className="hidden lg:block">
-            <Link to="/contacto">
-              <Button variant={isScrolled ? "default" : "heroOutline"} size="sm">
-                Pedido de Oração
-              </Button>
-            </Link>
+          {/* Auth Buttons */}
+          <div className="hidden lg:flex items-center gap-2">
+            {user ? (
+              <>
+                <Link to="/contacto">
+                  <Button variant={isScrolled ? "default" : "heroOutline"} size="sm">
+                    Pedido de Oração
+                  </Button>
+                </Link>
+                <button
+                  onClick={() => signOut()}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    isScrolled ? "text-foreground hover:bg-secondary" : "text-white/90 hover:bg-white/10"
+                  }`}
+                >
+                  <User size={16} />
+                  <span className="max-w-[100px] truncate">{profile?.full_name || "Membro"}</span>
+                  <LogOut size={14} />
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/contacto">
+                  <Button variant={isScrolled ? "default" : "heroOutline"} size="sm">
+                    Pedido de Oração
+                  </Button>
+                </Link>
+                <Link to="/auth">
+                  <Button variant={isScrolled ? "secondary" : "glass"} size="sm" className="flex items-center gap-2">
+                    <LogIn size={16} /> Entrar
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -139,13 +168,24 @@ export function Header() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: navItems.length * 0.05 }}
-                  className="pt-4"
+                  className="pt-4 space-y-2"
                 >
                   <Link to="/contacto">
                     <Button variant="hero" className="w-full">
                       Pedido de Oração
                     </Button>
                   </Link>
+                  {user ? (
+                    <Button variant="secondary" className="w-full flex items-center gap-2" onClick={() => signOut()}>
+                      <LogOut size={16} /> Sair ({profile?.full_name || "Membro"})
+                    </Button>
+                  ) : (
+                    <Link to="/auth">
+                      <Button variant="secondary" className="w-full flex items-center gap-2">
+                        <LogIn size={16} /> Entrar / Registar
+                      </Button>
+                    </Link>
+                  )}
                 </motion.div>
               </div>
             </motion.div>
