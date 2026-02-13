@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
@@ -7,28 +7,41 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, MapPin, Phone, Send, Heart, Calendar, MessageCircle } from "lucide-react";
+import { Mail, MapPin, Phone, Send, Heart, Calendar, MessageCircle, CheckCircle2 } from "lucide-react";
 
 const Contacto = () => {
   const { toast } = useToast();
   const [formType, setFormType] = useState<"contact" | "prayer" | "event">("contact");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast({
-      title: "Mensagem Enviada!",
-      description: formType === "prayer" 
-        ? "O teu pedido de oração foi recebido. Estaremos a orar por ti!" 
-        : "Obrigado pelo teu contacto. Responderemos em breve.",
-    });
-    
+
+    await new Promise(resolve => setTimeout(resolve, 1200));
+
+    const messages: Record<string, string> = {
+      prayer: "🙏 O teu pedido de oração foi recebido. A nossa equipa de intercessão estará a orar por ti!",
+      contact: "✉️ Mensagem enviada com sucesso! Responderemos em breve.",
+      event: "🎉 Inscrição realizada com sucesso! Até breve no evento!",
+    };
+
+    setSuccessMessage(messages[formType]);
+    setShowSuccess(true);
     setIsSubmitting(false);
+
+    setTimeout(() => setShowSuccess(false), 8000);
+
+    toast({
+      title: "Enviado com Sucesso!",
+      description: formType === "prayer"
+        ? "O teu pedido de oração foi recebido."
+        : "Obrigado pelo teu contacto.",
+    });
+
+    (e.target as HTMLFormElement).reset();
   };
 
   return (
@@ -169,7 +182,29 @@ const Contacto = () => {
                   </button>
                 </div>
 
-                <div className="bg-card rounded-2xl p-6 md:p-8 shadow-soft">
+                <div className="bg-card rounded-2xl p-6 md:p-8 shadow-soft relative overflow-hidden">
+                  {/* Success overlay */}
+                  <AnimatePresence>
+                    {showSuccess && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        className="absolute inset-0 bg-card z-20 flex flex-col items-center justify-center p-8 text-center"
+                      >
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                        >
+                          <CheckCircle2 size={64} className="text-primary mx-auto mb-4" />
+                        </motion.div>
+                        <h3 className="text-2xl font-bold text-foreground mb-3">Enviado!</h3>
+                        <p className="text-muted-foreground max-w-sm">{successMessage}</p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
                   <h3 className="text-xl font-bold text-foreground mb-6">
                     {formType === "contact" && "Enviar Mensagem"}
                     {formType === "prayer" && "Pedido de Oração"}
