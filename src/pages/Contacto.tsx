@@ -7,10 +7,16 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, MapPin, Phone, Send, Heart, Calendar, MessageCircle, CheckCircle2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { Mail, MapPin, Phone, Send, Heart, Calendar, MessageCircle, CheckCircle2, LogIn } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Contacto = () => {
   const { toast } = useToast();
+  const { user, profile } = useAuth();
+  const queryClient = useQueryClient();
   const [formType, setFormType] = useState<"contact" | "prayer" | "event">("contact");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -20,7 +26,29 @@ const Contacto = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    await new Promise(resolve => setTimeout(resolve, 1200));
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+
+    if (formType === "prayer" && user) {
+      const { error } = await supabase.from("prayer_requests").insert({
+        user_id: user.id,
+        name: (formData.get("name") as string) || profile?.full_name || "Anónimo",
+        subject: formData.get("subject") as string,
+        message: formData.get("message") as string,
+      });
+
+      if (error) {
+        toast({ title: "Erro", description: "Não foi possível enviar o pedido. Tenta novamente.", variant: "destructive" });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Refresh stats
+      queryClient.invalidateQueries({ queryKey: ["site-stats"] });
+    } else {
+      // Simulate for contact/event or unauthenticated
+      await new Promise(resolve => setTimeout(resolve, 1200));
+    }
 
     const messages: Record<string, string> = {
       prayer: "🙏 O teu pedido de oração foi recebido. A nossa equipa de intercessão estará a orar por ti!",
@@ -31,7 +59,6 @@ const Contacto = () => {
     setSuccessMessage(messages[formType]);
     setShowSuccess(true);
     setIsSubmitting(false);
-
     setTimeout(() => setShowSuccess(false), 8000);
 
     toast({
@@ -41,7 +68,7 @@ const Contacto = () => {
         : "Obrigado pelo teu contacto.",
     });
 
-    (e.target as HTMLFormElement).reset();
+    form.reset();
   };
 
   return (
@@ -105,9 +132,7 @@ const Contacto = () => {
                     </div>
                     <div>
                       <h3 className="font-semibold text-foreground">Telefone</h3>
-                      <p className="text-muted-foreground text-sm">
-                        +244 923 000 000
-                      </p>
+                      <p className="text-muted-foreground text-sm">+244 923 000 000</p>
                     </div>
                   </div>
 
@@ -117,9 +142,7 @@ const Contacto = () => {
                     </div>
                     <div>
                       <h3 className="font-semibold text-foreground">Email</h3>
-                      <p className="text-muted-foreground text-sm">
-                        juventude@iea-boaesperanca.org
-                      </p>
+                      <p className="text-muted-foreground text-sm">juventude@iea-boaesperanca.org</p>
                     </div>
                   </div>
                 </div>
@@ -147,40 +170,40 @@ const Contacto = () => {
               >
                 {/* Form Type Selector */}
                 <div className="flex flex-wrap gap-3 mb-8">
-                  <button
-                    onClick={() => setFormType("contact")}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
-                      formType === "contact"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-secondary text-foreground hover:bg-secondary/80"
-                    }`}
-                  >
-                    <MessageCircle size={18} />
-                    Mensagem
-                  </button>
-                  <button
-                    onClick={() => setFormType("prayer")}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
-                      formType === "prayer"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-secondary text-foreground hover:bg-secondary/80"
-                    }`}
-                  >
-                    <Heart size={18} />
-                    Pedido de Oração
-                  </button>
-                  <button
-                    onClick={() => setFormType("event")}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
-                      formType === "event"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-secondary text-foreground hover:bg-secondary/80"
-                    }`}
-                  >
-                    <Calendar size={18} />
-                    Inscrição em Evento
-                  </button>
+                  {[
+                    { type: "contact" as const, icon: MessageCircle, label: "Mensagem" },
+                    { type: "prayer" as const, icon: Heart, label: "Pedido de Oração" },
+                    { type: "event" as const, icon: Calendar, label: "Inscrição em Evento" },
+                  ].map(({ type, icon: Icon, label }) => (
+                    <button
+                      key={type}
+                      onClick={() => setFormType(type)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
+                        formType === type
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-secondary text-foreground hover:bg-secondary/80"
+                      }`}
+                    >
+                      <Icon size={18} />
+                      {label}
+                    </button>
+                  ))}
                 </div>
+
+                {/* Login prompt for prayer requests */}
+                {formType === "prayer" && !user && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-6 p-4 rounded-xl bg-accent/10 border border-accent/20 flex items-center gap-3"
+                  >
+                    <LogIn size={20} className="text-primary shrink-0" />
+                    <p className="text-sm text-muted-foreground">
+                      <Link to="/auth" className="text-primary font-semibold hover:underline">Inicia sessão</Link>
+                      {" "}para que o teu pedido de oração seja guardado de forma segura.
+                    </p>
+                  </motion.div>
+                )}
 
                 <div className="bg-card rounded-2xl p-6 md:p-8 shadow-soft relative overflow-hidden">
                   {/* Success overlay */}
@@ -215,19 +238,23 @@ const Contacto = () => {
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="name">Nome Completo *</Label>
-                        <Input 
-                          id="name" 
-                          placeholder="O teu nome" 
-                          required 
+                        <Input
+                          id="name"
+                          name="name"
+                          placeholder="O teu nome"
+                          defaultValue={profile?.full_name || ""}
+                          required
                           className="h-12"
                         />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="email">Email *</Label>
-                        <Input 
-                          id="email" 
-                          type="email" 
-                          placeholder="email@exemplo.com" 
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          placeholder="email@exemplo.com"
+                          defaultValue={user?.email || ""}
                           required
                           className="h-12"
                         />
@@ -237,18 +264,14 @@ const Contacto = () => {
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="phone">Telefone</Label>
-                        <Input 
-                          id="phone" 
-                          type="tel" 
-                          placeholder="+244 9XX XXX XXX"
-                          className="h-12"
-                        />
+                        <Input id="phone" name="phone" type="tel" placeholder="+244 9XX XXX XXX" className="h-12" />
                       </div>
                       {formType === "event" && (
                         <div className="space-y-2">
                           <Label htmlFor="event">Evento *</Label>
                           <select
                             id="event"
+                            name="event"
                             required
                             className="w-full h-12 px-3 rounded-lg border border-input bg-background text-foreground"
                           >
@@ -265,13 +288,10 @@ const Contacto = () => {
                       <Label htmlFor="subject">
                         {formType === "prayer" ? "Motivo do Pedido *" : "Assunto *"}
                       </Label>
-                      <Input 
-                        id="subject" 
-                        placeholder={
-                          formType === "prayer" 
-                            ? "Ex: Saúde, Família, Trabalho..." 
-                            : "Assunto da mensagem"
-                        }
+                      <Input
+                        id="subject"
+                        name="subject"
+                        placeholder={formType === "prayer" ? "Ex: Saúde, Família, Trabalho..." : "Assunto da mensagem"}
                         required
                         className="h-12"
                       />
@@ -283,6 +303,7 @@ const Contacto = () => {
                       </Label>
                       <Textarea
                         id="message"
+                        name="message"
                         placeholder={
                           formType === "prayer"
                             ? "Partilha o teu pedido de oração. Será tratado com confidencialidade."
@@ -303,12 +324,7 @@ const Contacto = () => {
                       </div>
                     )}
 
-                    <Button 
-                      type="submit" 
-                      size="lg" 
-                      className="w-full"
-                      disabled={isSubmitting}
-                    >
+                    <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
                       {isSubmitting ? (
                         "A enviar..."
                       ) : (

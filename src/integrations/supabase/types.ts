@@ -118,6 +118,36 @@ export type Database = {
         }
         Relationships: []
       }
+      prayer_requests: {
+        Row: {
+          created_at: string
+          id: string
+          is_anonymous: boolean | null
+          message: string
+          name: string
+          subject: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_anonymous?: boolean | null
+          message: string
+          name: string
+          subject: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_anonymous?: boolean | null
+          message?: string
+          name?: string
+          subject?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -156,7 +186,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_site_stats: { Args: never; Returns: Json }
     }
     Enums: {
       [_ in never]: never
