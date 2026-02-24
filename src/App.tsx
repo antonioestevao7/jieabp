@@ -13,6 +13,7 @@ import Noticias from "./pages/Noticias";
 import Contacto from "./pages/Contacto";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -24,13 +25,13 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/quem-somos" element={<QuemSomos />} />
-            <Route path="/conteudos" element={<Conteudos />} />
-            <Route path="/multimedia" element={<Multimedia />} />
-            <Route path="/eventos" element={<Eventos />} />
-            <Route path="/noticias" element={<Noticias />} />
-            <Route path="/contacto" element={<Contacto />} />
+            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+            <Route path="/quem-somos" element={<ProtectedRoute><QuemSomos /></ProtectedRoute>} />
+            <Route path="/conteudos" element={<ProtectedRoute><Conteudos /></ProtectedRoute>} />
+            <Route path="/multimedia" element={<ProtectedRoute><Multimedia /></ProtectedRoute>} />
+            <Route path="/eventos" element={<ProtectedRoute><Eventos /></ProtectedRoute>} />
+            <Route path="/noticias" element={<ProtectedRoute><Noticias /></ProtectedRoute>} />
+            <Route path="/contacto" element={<ProtectedRoute><Contacto /></ProtectedRoute>} />
             <Route path="/auth" element={<Auth />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
