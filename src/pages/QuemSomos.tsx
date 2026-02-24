@@ -11,8 +11,8 @@ const values = [
 ];
 
 const leaders = [
-  { name: "Pastor João", role: "Líder Pastoral", description: "Orientação espiritual da juventude" },
-  { name: "Irmã Maria", role: "Coordenadora Geral", description: "Coordenação das atividades juvenis" },
+  { name: "Manuel Roboão Tavares", role: "Director", description: "Orientação espiritual e administrativa da juventude" },
+  { name: "Estanislau Paulo", role: "Secretário Executivo", description: "Coordenação das atividades juvenis" },
   { name: "Irmão Pedro", role: "Líder de Louvor", description: "Ministério de música e adoração" },
   { name: "Irmã Ana", role: "Secretária", description: "Comunicação e administração" },
 ];
