@@ -8,7 +8,7 @@ import worshipTeamImage from "@/assets/worship-team.jpg";
 import heroWorshipImage from "@/assets/hero-worship.jpg";
 
 const photos = [
-  { id: 1, src: heroWorshipImage, title: "Culto de Adoração", category: "Cultos" },
+  { id: 1, src: heroWorshipImage, title: "Culto de Adoração Vassa", category: "Cultos" },
   { id: 2, src: bibleStudyImage, title: "Estudo Bíblico", category: "Estudos" },
   { id: 3, src: youthEventImage, title: "Encontro Jovem", category: "Eventos" },
   { id: 4, src: worshipTeamImage, title: "Equipa de Louvor", category: "Louvor" },
